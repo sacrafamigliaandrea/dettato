@@ -751,7 +751,12 @@ function alClicTasto(code) { if (S.fase === 'mappa' || !S.cfg) return; if (code 
   let ch = null; if (code === 'Space') ch = ' '; else if (/^Key[A-Z]$/.test(code)) ch = code.slice(3).toLowerCase(); else { const k = MAC_RIGHE.flat().find(r => r[0] === code); if (k && k[1]) ch = TOCCO.maiusc ? k[2] : k[1]; } if (ch === null) return;
   if (!S.cfg.minuscolo) { if (eLettera(ch)) digita(ch.toUpperCase(), code); return; } if (eLettera(ch) && TOCCO.maiusc) ch = ch.toUpperCase(); if (TOCCO.maiusc) { TOCCO.maiusc = false; ['ShiftLeft', 'ShiftRight'].forEach(c => tastiEl(c).forEach(e => e.classList.remove('tieni'))); } if (CARATTERI.test(ch)) digita(ch, code); }
 function avvia() { if (Q.get('ascolto') === '1') { paginaAscolto(); return; } if (PAR.touch) document.body.classList.add('touch'); costruisciMac(PAR.minuscole, PAR.touch ? alClicTasto : null);
-  addEventListener('keydown', allaTastiera); $('#bVoce').innerHTML = ICO.aud; $('#bEsci').innerHTML = ICO.esci; $('#bRiascolta').innerHTML = `${ICO.aud}<span>Riascolta</span>`;
+  addEventListener('keydown', allaTastiera);
+  // Chrome lascia il focus sul bottone cliccato col mouse, e allaTastiera cede Invio e spazio al bottone che ha il focus:
+  // dopo «Riascolta» Invio ridiceva la parola invece di consegnarla (e dopo una moneta ne spendeva un'altra).
+  // Dopo un clic col puntatore (detail > 0) il focus torna alla pagina; chi arriva al bottone con Tab (clic da tastiera, detail 0) lo tiene.
+  addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b && e.detail > 0) b.blur(); });
+  $('#bVoce').innerHTML = ICO.aud; $('#bEsci').innerHTML = ICO.esci; $('#bRiascolta').innerHTML = `${ICO.aud}<span>Riascolta</span>`;
   $('#bVoce').onclick = () => { GSND.on = !GSND.on; $('#bVoce').innerHTML = GSND.on ? ICO.aud : ICO.muto; if (!GSND.on) taci(); }; $('#bEsci').onclick = mostraMappa; $('#bRiascolta').onclick = riascolta; $('#monete').addEventListener('click', e => { if (e.target.closest('button:not(:disabled)')) spendiMoneta(); }); mostraMappa(); }
 avvia();
 
